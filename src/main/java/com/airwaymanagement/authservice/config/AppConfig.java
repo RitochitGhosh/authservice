@@ -1,6 +1,6 @@
 package com.airwaymanagement.authservice.config;
 
-import com.airwaymanagement.authservice.jwt.TokenValidator;
+import com.airwaymanagement.authservice.jwt.TokenFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -29,7 +29,7 @@ public class AppConfig {
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll()
                 )
-                .addFilterBefore(new TokenValidator(), BasicAuthenticationFilter.class)
+                .addFilterBefore(new TokenFilter(), BasicAuthenticationFilter.class)
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()));
 

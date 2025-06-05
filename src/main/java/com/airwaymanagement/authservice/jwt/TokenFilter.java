@@ -7,6 +7,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,7 +22,25 @@ import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.util.List;
 
-public class TokenValidator extends OncePerRequestFilter {
+public class TokenFilter extends OncePerRequestFilter {
+
+    private static final Logger logger = LoggerFactory.getLogger(TokenFilter.class);
+
+    @Autowired
+    private TokenProvider jwtTokenProvider;
+
+    private String getJWT(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer")) {
+            return authHeader.replace("Bearer", "");
+        }
+        return null;
+    }
+
+
+    /*  FIXME : This is not a Proper Process. We Need to integrate this in UserDetailService.
+         this acts as a connector of user Database and Spring Security Auth Mechanisms.
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
