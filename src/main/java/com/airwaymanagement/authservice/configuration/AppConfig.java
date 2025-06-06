@@ -1,6 +1,6 @@
-package com.airwaymanagement.authservice.config;
+package com.airwaymanagement.authservice.configuration;
 
-import com.airwaymanagement.authservice.jwt.TokenFilter;
+import com.airwaymanagement.authservice.security.jsonwebtokens.TokenFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;

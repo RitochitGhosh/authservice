@@ -1,4 +1,4 @@
-package com.airwaymanagement.authservice.model;
+package com.airwaymanagement.authservice.model.entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

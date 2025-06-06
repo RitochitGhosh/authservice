@@ -1,4 +1,4 @@
-package com.airwaymanagement.authservice.jwt;
+package com.airwaymanagement.authservice.security.jsonwebtokens;
 
 import javax.crypto.SecretKey;
 
@@ -122,5 +122,5 @@ public class TokenProvider {
         String email = String.valueOf(claim.get("email"));
         return email;
     }
-    
+
 }
