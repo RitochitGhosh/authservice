@@ -12,9 +12,9 @@ public class UserDetailService implements UserDetailsService {
     @Autowired
     UserRepository userRepository;
 
-    public UserDetail loadUserByUsername(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Email or Username does not exist, please try again: " + username));
+    public UserDetail loadUserByUsername(String userName) {
+        User user = userRepository.findByUserName(userName)
+                .orElseThrow(() -> new RuntimeException("Email or Username does not exist, please try again: " + userName));
 
         return UserDetail.build(user);
     }
