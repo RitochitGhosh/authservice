@@ -1,4 +1,4 @@
-package com.airwaymanagement.authservice.jwt;
+package com.airwaymanagement.authservice.security.jsonwebtokens;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
