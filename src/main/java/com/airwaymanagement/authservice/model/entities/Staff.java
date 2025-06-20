@@ -1,15 +1,14 @@
 package com.airwaymanagement.authservice.model.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Getter
+@Builder
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
@@ -28,7 +27,7 @@ public class Staff {
     private String staffRole;
 
     @Column(name = "date_of_joining")
-    private LocalDateTime dateOfJoining;
+    private Date dateOfJoining;
 
     @Column(name = "salary")
     private String salary;
