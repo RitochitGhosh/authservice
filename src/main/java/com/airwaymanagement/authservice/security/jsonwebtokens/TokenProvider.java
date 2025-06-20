@@ -34,11 +34,6 @@ public class TokenProvider {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    /**
-     * Authentication Class has a set of Roles and Permissions.
-     * List of Granted Roles are converted into strings and joined with ","
-     * Later in JSONWebToken Building Stage, it is passed in Claims.
-     */
     public String generateToken(Authentication authentication) {
 
         // Roles are extracted from authentication and returns with joined with ','
@@ -115,14 +110,4 @@ public class TokenProvider {
         }
         return null;
     }
-
-    // FIXME : Why Extract email if you have username / unique_id?
-    public String getEmailFromToken (String jwt) {
-        jwt = jwt.split(" ")[1];
-        Claims claim = Jwts.parser().setSigningKey(getJWTSecretKey(jwtSecret)).build().parseClaimsJws(jwt).getBody();
-
-        String email = String.valueOf(claim.get("email"));
-        return email;
-    }
-
 }

@@ -1,6 +1,7 @@
 package com.airwaymanagement.authservice.controllers;
 
 import com.airwaymanagement.authservice.model.dtos.requests.Signup;
+import com.airwaymanagement.authservice.model.dtos.requests.StaffSignup;
 import com.airwaymanagement.authservice.model.dtos.responses.ResponseMessage;
 import com.airwaymanagement.authservice.services.UserService;
 import io.swagger.annotations.ApiResponse;
@@ -17,14 +18,17 @@ public class UserAuthenticationController {
         this.userService = userService;
     }
 
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "User created successfully", response = ResponseMessage.class),
-            @ApiResponse(code = 500, message = "Internal Server Error", response = ResponseMessage.class)
-    })
     @PostMapping({"/signup", "/register"})
     public Mono<ResponseMessage> register(@RequestBody Signup signup) {
         return userService.register(signup)
                 .map(user -> new ResponseMessage("Create user: " + signup.getUserName() + " successfully."))
+                .onErrorResume(error -> Mono.just(new ResponseMessage("Error occurred while creating the account.")));
+    }
+
+    @PostMapping({"/signup/staff", "/register/staff"})
+    public Mono<ResponseMessage> registerStaff(@RequestBody StaffSignup staffSignup){
+        return userService.registerStaff(staffSignup)
+                .map(user -> new ResponseMessage("Create staff: " + staffSignup.getUserName() + " successfully."))
                 .onErrorResume(error -> Mono.just(new ResponseMessage("Error occurred while creating the account.")));
     }
 }

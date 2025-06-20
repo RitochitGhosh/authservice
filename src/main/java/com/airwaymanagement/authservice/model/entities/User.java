@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Email;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -40,7 +41,7 @@ public class User {
     private String phoneNumber;
 
     @Column(name = "date_of_birth")
-    private LocalDateTime dateOfBirth;
+    private Date dateOfBirth;
 
     @Column(name = "gov_id")
     private String govId; // TODO: Handle this more carefully for scalability
