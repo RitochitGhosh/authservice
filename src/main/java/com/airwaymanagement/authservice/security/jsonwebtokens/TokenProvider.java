@@ -86,7 +86,7 @@ public class TokenProvider {
             Jwts.parser()
                     .verifyWith(getJWTSecretKey(jwtSecret))
                     .build()
-                    .parseUnsecuredClaims(token);
+                    .parseSignedClaims(token);
 
             return true;
         } catch (Exception e){
@@ -101,7 +101,7 @@ public class TokenProvider {
             Claims claims = Jwts.parser()
                     .verifyWith(getJWTSecretKey(jwtSecret))
                     .build()
-                    .parseUnsecuredClaims(token)
+                    .parseSignedClaims(token)
                     .getPayload();
 
             return claims.getSubject();

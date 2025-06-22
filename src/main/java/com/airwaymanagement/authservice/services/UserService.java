@@ -1,13 +1,16 @@
 package com.airwaymanagement.authservice.services;
 
+import com.airwaymanagement.authservice.model.dtos.requests.Login;
 import com.airwaymanagement.authservice.model.dtos.requests.Signup;
 import com.airwaymanagement.authservice.model.dtos.requests.StaffSignup;
+import com.airwaymanagement.authservice.model.dtos.responses.JWTResponseMessage;
 import com.airwaymanagement.authservice.model.entities.User;
 import reactor.core.publisher.Mono;
 
 public interface UserService {
     Mono<User> register(Signup signup);
     Mono<User> registerStaff(StaffSignup staffSignup);
+    Mono<JWTResponseMessage> login(Login login);
 
-    // TODO : Include Other 6 Functions
+    // TODO : Include Other 5 Functions
 }
