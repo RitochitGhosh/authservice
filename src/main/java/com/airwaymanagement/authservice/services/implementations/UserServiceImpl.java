@@ -1,18 +1,25 @@
 package com.airwaymanagement.authservice.services.implementations;
 
+import com.airwaymanagement.authservice.model.dtos.requests.Login;
 import com.airwaymanagement.authservice.model.dtos.requests.Signup;
 import com.airwaymanagement.authservice.model.dtos.requests.StaffSignup;
+import com.airwaymanagement.authservice.model.dtos.responses.JWTResponseMessage;
 import com.airwaymanagement.authservice.model.entities.RoleName;
 import com.airwaymanagement.authservice.model.entities.Staff;
 import com.airwaymanagement.authservice.model.entities.User;
 import com.airwaymanagement.authservice.repository.StaffRepository;
 import com.airwaymanagement.authservice.repository.UserRepository;
 import com.airwaymanagement.authservice.security.jsonwebtokens.TokenProvider;
+import com.airwaymanagement.authservice.security.usersecurity.UserDetail;
 import com.airwaymanagement.authservice.security.usersecurity.UserDetailService;
 import com.airwaymanagement.authservice.services.RoleService;
 import com.airwaymanagement.authservice.services.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -118,6 +125,40 @@ public class UserServiceImpl implements UserService {
 
             return Mono.just(user);
         });
+    }
+
+    @Override
+    public Mono<JWTResponseMessage> login(Login login){
+        return Mono.fromCallable(() -> {
+            String username = login.getUsername();
+
+            UserDetails userDetails;
+            userDetails = userDetailService.loadUserByUsername(username);
+
+            if (userDetails == null) {
+                throw new RuntimeException("User not found");
+            }
+
+            if(!passwordEncoder.matches(login.getPassword(), userDetails.getPassword())){
+                throw new RuntimeException("Incorrect Password");
+            }
+
+            Authentication authentication = new UsernamePasswordAuthenticationToken(
+                    userDetails, login.getPassword(), userDetails.getAuthorities()
+            );
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            String accessToken = tokenProvider.generateToken(authentication);
+            String refreshToken = tokenProvider.generateRefreshToken(authentication);
+
+            UserDetail userDetail = (UserDetail) userDetails;
+
+            return JWTResponseMessage.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .info("User Successfully Logged in").build();
+        }).onErrorResume(Mono::error);
     }
 
 
