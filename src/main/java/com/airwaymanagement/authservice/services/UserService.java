@@ -1,5 +1,6 @@
 package com.airwaymanagement.authservice.services;
 
+import com.airwaymanagement.authservice.model.dtos.requests.ChangePasswordRequest;
 import com.airwaymanagement.authservice.model.dtos.requests.Login;
 import com.airwaymanagement.authservice.model.dtos.requests.Signup;
 import com.airwaymanagement.authservice.model.dtos.requests.StaffSignup;
@@ -11,6 +12,7 @@ public interface UserService {
     Mono<User> register(Signup signup);
     Mono<User> registerStaff(StaffSignup staffSignup);
     Mono<JWTResponseMessage> login(Login login);
+    Mono<String> changePassword(ChangePasswordRequest request);
 
-    // TODO : Include Other 5 Functions
+    // TODO : Include Other 4 Functions
 }

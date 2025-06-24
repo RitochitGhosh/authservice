@@ -1,18 +1,16 @@
 package com.airwaymanagement.authservice.controllers;
 
+import com.airwaymanagement.authservice.model.dtos.requests.ChangePasswordRequest;
 import com.airwaymanagement.authservice.model.dtos.requests.Login;
 import com.airwaymanagement.authservice.model.dtos.requests.Signup;
 import com.airwaymanagement.authservice.model.dtos.requests.StaffSignup;
 import com.airwaymanagement.authservice.model.dtos.responses.JWTResponseMessage;
 import com.airwaymanagement.authservice.model.dtos.responses.ResponseMessage;
 import com.airwaymanagement.authservice.services.UserService;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
