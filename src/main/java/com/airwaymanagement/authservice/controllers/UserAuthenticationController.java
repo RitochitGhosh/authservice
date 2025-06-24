@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Mono;
 
 @Slf4j
 @RestController
@@ -26,43 +25,60 @@ public class UserAuthenticationController {
     }
 
     @PostMapping("/register")
-    public Mono<ResponseMessage> register(@RequestBody Signup signup) {
-        return userService.register(signup)
-                .map(user -> new ResponseMessage("Create user: " + signup.getUserName() + " successfully."))
-                .onErrorResume(error -> Mono.just(new ResponseMessage("Error occurred while creating the account.")));
+    public ResponseEntity<ResponseMessage> register(@RequestBody Signup signup) {
+        try {
+            userService.register(signup);
+            return new ResponseEntity<>(
+                    new ResponseMessage("Create user: " + signup.getUserName() + " successfully."),
+                    HttpStatus.OK
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    new ResponseMessage("Error occurred while creating the account."),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
     }
 
     @PostMapping("/register/staff")
-    public Mono<ResponseMessage> registerStaff(@RequestBody StaffSignup staffSignup) {
-        return userService.registerStaff(staffSignup)
-                .map(user -> new ResponseMessage("Create staff: " + staffSignup.getUserName() + " successfully."))
-                .onErrorResume(error -> Mono.just(new ResponseMessage("Error occurred while creating the account.")));
+    public ResponseEntity<ResponseMessage> registerStaff(@RequestBody StaffSignup staffSignup) {
+        try {
+            userService.registerStaff(staffSignup);
+            return new ResponseEntity<>(
+                    new ResponseMessage("Create user: " + staffSignup.getUserName() + " successfully."),
+                    HttpStatus.OK
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    new ResponseMessage("Error occurred while creating the account."),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
     }
 
     @PostMapping("/login")
-    public Mono<ResponseEntity<JWTResponseMessage>> login(@RequestBody Login login) {
-        return userService.login(login)
-                .map(ResponseEntity::ok)
-                .onErrorResume(error -> {
-                    JWTResponseMessage errorjwtResponseMessage = new JWTResponseMessage(
-                            null,
-                            null,
-                            "Error: Retry Again"
-                    );
-                    return Mono.just(new ResponseEntity<>(errorjwtResponseMessage, HttpStatus.INTERNAL_SERVER_ERROR));
-                });
+    public ResponseEntity<JWTResponseMessage> login(@RequestBody Login login) {
+        try {
+            return new ResponseEntity<>(userService.login(login), HttpStatus.OK);
+        } catch (Exception e) {
+            JWTResponseMessage errorJwtResponseMessage = new JWTResponseMessage(
+                    null,
+                    null,
+                    "Error: Retry Again"
+            );
+            return new ResponseEntity<>(errorJwtResponseMessage, HttpStatus.BAD_REQUEST);
+        }
     }
 
     @PostMapping("/logout")
     @PreAuthorize("isAuthenticated() and hasAuthority('USER')")
-    public Mono<ResponseEntity<String>> logout() {
-        log.info("Logger Endpoint Called");
-        return userService.logout()
-                .then(Mono.just(new ResponseEntity<>("Logout Successful", HttpStatus.OK)))
-                .onErrorResume(error -> {
-                    log.error("Logout failed", error);
-                    return Mono.just(new ResponseEntity<>("Logout failed.", HttpStatus.BAD_REQUEST));
-                });
+    public ResponseEntity<String> logout() {
+        try {
+             userService.logout();
+             return new ResponseEntity<>("Logout Successful", HttpStatus.OK);
+        } catch (Exception e) {
+             return new ResponseEntity<>("Logout failed.", HttpStatus.BAD_REQUEST);
+        }
     }
 
     @GetMapping("/hello")

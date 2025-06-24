@@ -29,6 +29,5 @@ public class UserManagerController {
     public ResponseEntity<ResponseMessage> changePassword(@RequestBody ChangePasswordRequest request){
         userService.changePassword(request);
         return ResponseEntity.ok(new ResponseMessage("Password Changed Successfully"));
-
     }
 }

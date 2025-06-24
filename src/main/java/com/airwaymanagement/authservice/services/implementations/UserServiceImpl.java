@@ -5,6 +5,7 @@ import com.airwaymanagement.authservice.model.dtos.requests.Login;
 import com.airwaymanagement.authservice.model.dtos.requests.Signup;
 import com.airwaymanagement.authservice.model.dtos.requests.StaffSignup;
 import com.airwaymanagement.authservice.model.dtos.responses.JWTResponseMessage;
+import com.airwaymanagement.authservice.model.dtos.responses.ResponseMessage;
 import com.airwaymanagement.authservice.model.entities.RoleName;
 import com.airwaymanagement.authservice.model.entities.Staff;
 import com.airwaymanagement.authservice.model.entities.User;
@@ -23,7 +24,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -60,129 +60,123 @@ public class UserServiceImpl implements UserService {
         this.roleService = roleService;
     }
 
-    public Mono<User> register(Signup signup) {
-        return Mono.defer(() -> {
-            if (existsByUsername(signup.getUserName())) {
-                return Mono.error(new RuntimeException("The username " + signup.getUserName() + " is existed, please try again."));
-            } else if (existsByEmail(signup.getEmail())) {
-                return Mono.error(new RuntimeException("The email " + signup.getEmail() + " is existed, please try again."));
-            }
+    @Override
+    public User register(Signup signup) {
 
-            User user;
+        if (existsByUsername(signup.getUserName())) {
+            throw new RuntimeException("The username " + signup.getUserName() + " is existed, please try again.");
+        } else if (existsByEmail(signup.getEmail())) {
+            throw new RuntimeException("The email " + signup.getEmail() + " is existed, please try again.");
+        }
 
-            try {
-                user = modelMapper.map(signup, User.class);
-                user.setDateOfBirth(new SimpleDateFormat("yyyy-MM-dd").parse(signup.getDateOfBirth()));
-                user.setPassword(passwordEncoder.encode(signup.getPassword()));
-                user.setRoles(signup.getRoles()
-                        .stream()
-                        .map(role -> roleService.findByName(mapToRoleName(role))
-                                .orElseThrow(() -> new RuntimeException("Role not found in the database.")))
-                        .collect(Collectors.toSet()));
+        User user;
 
-                userRepository.save(user);
+        try {
+            user = modelMapper.map(signup, User.class);
+            user.setDateOfBirth(new SimpleDateFormat("yyyy-MM-dd").parse(signup.getDateOfBirth()));
+            user.setPassword(passwordEncoder.encode(signup.getPassword()));
+            user.setRoles(signup.getRoles()
+                    .stream()
+                    .map(role -> roleService.findByName(mapToRoleName(role))
+                            .orElseThrow(() -> new RuntimeException("Role not found in the database.")))
+                    .collect(Collectors.toSet()));
 
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
-            }
+            return userRepository.save(user);
 
-
-            return Mono.just(user);
-        });
-    }
-
-    public Mono<User> registerStaff(StaffSignup signup) {
-        return Mono.defer(() -> {
-            if (existsByUsername(signup.getUserName())) {
-                return Mono.error(new RuntimeException("The username " + signup.getUserName() + " is existed, please try again."));
-            } else if (existsByEmail(signup.getEmail())) {
-                return Mono.error(new RuntimeException("The email " + signup.getEmail() + " is existed, please try again."));
-            }
-
-            User user;
-
-            try {
-                user = modelMapper.map(signup, User.class);
-                user.setDateOfBirth(new SimpleDateFormat("yyyy-MM-dd").parse(signup.getDateOfBirth()));
-                user.setPassword(passwordEncoder.encode(signup.getPassword()));
-                user.setRoles(signup.getRoles()
-                        .stream()
-                        .map(role -> roleService.findByName(mapToRoleName(role))
-                                .orElseThrow(() -> new RuntimeException("Role not found in the database.")))
-                        .collect(Collectors.toSet()));
-
-                User savedUser = userRepository.save(user);
-
-                Staff staff = Staff.builder()
-                        .user(savedUser)
-                        .staffRole(signup.getStaffRole())
-                        .dateOfJoining(new SimpleDateFormat("yyyy-MM-dd").parse(signup.getDateOfJoining()))
-                        .salary(signup.getSalary())
-                        .build();
-
-                staffRepository.save(staff);
-
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
-            }
-
-            return Mono.just(user);
-        });
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public Mono<JWTResponseMessage> login(Login login){
-        return Mono.fromCallable(() -> {
-            String username = login.getUsername();
+    public Staff registerStaff(StaffSignup signup) {
+        if (existsByUsername(signup.getUserName())) {
+            throw new RuntimeException("The username " + signup.getUserName() + " is existed, please try again.");
+        } else if (existsByEmail(signup.getEmail())) {
+            throw new RuntimeException("The email " + signup.getEmail() + " is existed, please try again.");
+        }
 
-            UserDetails userDetails;
-            userDetails = userDetailService.loadUserByUsername(username);
+        User user;
 
-            if (userDetails == null) {
-                throw new RuntimeException("User not found");
-            }
+        try {
+            user = modelMapper.map(signup, User.class);
+            user.setDateOfBirth(new SimpleDateFormat("yyyy-MM-dd").parse(signup.getDateOfBirth()));
+            user.setPassword(passwordEncoder.encode(signup.getPassword()));
+            user.setRoles(signup.getRoles()
+                    .stream()
+                    .map(role -> roleService.findByName(mapToRoleName(role))
+                            .orElseThrow(() -> new RuntimeException("Role not found in the database.")))
+                    .collect(Collectors.toSet()));
 
-            if(!passwordEncoder.matches(login.getPassword(), userDetails.getPassword())){
-                throw new RuntimeException("Incorrect Password");
-            }
+            User savedUser = userRepository.save(user);
 
-            Authentication authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails, login.getPassword(), userDetails.getAuthorities()
-            );
+            Staff staff = Staff.builder()
+                    .user(savedUser)
+                    .staffRole(signup.getStaffRole())
+                    .dateOfJoining(new SimpleDateFormat("yyyy-MM-dd").parse(signup.getDateOfJoining()))
+                    .salary(signup.getSalary())
+                    .build();
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            return staffRepository.save(staff);
 
-            String accessToken = tokenProvider.generateToken(authentication);
-            String refreshToken = tokenProvider.generateRefreshToken(authentication);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
 
-            UserDetail userDetail = (UserDetail) userDetails;
-
-            return JWTResponseMessage.builder()
-                    .accessToken(accessToken)
-                    .refreshToken(refreshToken)
-                    .info("User Successfully Logged in").build();
-        }).onErrorResume(Mono::error);
     }
 
-    public Mono<Void> logout(){
-        return Mono.defer(()->{
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    @Override
+    public JWTResponseMessage login(Login login) {
+        String username = login.getUsername();
 
-            SecurityContextHolder.getContext().setAuthentication(null);
+        UserDetails userDetails;
+        userDetails = userDetailService.loadUserByUsername(username);
 
-            String token = getCurrentToken();
+        if (userDetails == null) {
+            throw new RuntimeException("User not found");
+        }
 
-            if(authentication!=null && authentication.isAuthenticated()){
-                String updatedToken = tokenProvider.reduceTokenExpiration(token);
+        if (!passwordEncoder.matches(login.getPassword(), userDetails.getPassword())) {
+            throw new RuntimeException("Incorrect Password");
+        }
 
-            }
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails, login.getPassword(), userDetails.getAuthorities()
+        );
 
-            SecurityContextHolder.clearContext();
-            return Mono.empty();
-        });
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        String accessToken = tokenProvider.generateToken(authentication);
+        String refreshToken = tokenProvider.generateRefreshToken(authentication);
+
+        UserDetail userDetail = (UserDetail) userDetails;
+
+        return JWTResponseMessage.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .info("User Successfully Logged in").build();
+
     }
 
-    public Mono<String> changePassword(ChangePasswordRequest request) {
+    @Override
+    public void logout() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String token = getCurrentToken();
+
+        String username = tokenProvider.getUserNameFromToken(token);
+        UserDetails userDetails = userDetailService.loadUserByUsername(username);
+
+        if (authentication != null && authentication.isAuthenticated()) {
+            tokenProvider.reduceTokenExpiration(token);
+        }
+
+        SecurityContextHolder.getContext().setAuthentication(null);
+
+        SecurityContextHolder.clearContext();
+    }
+
+    @Override
+    public ResponseMessage changePassword(ChangePasswordRequest request) {
 
         try {
             UserDetails userDetails = getCurrentUserDetails();
@@ -196,25 +190,25 @@ public class UserServiceImpl implements UserService {
                     existingUser.setPassword(passwordEncoder.encode(request.getNewPassword()));
                     userRepository.save(existingUser);
                 } else {
-                    return Mono.just("Password and Confirm Password is not same");
+                    return new ResponseMessage("Password and Confirm Password is not same");
                 }
             } else {
-                return Mono.error(new RuntimeException("Incorrect password"));
+                return new ResponseMessage("Incorrect password");
             }
-            return Mono.just("Password Changed Successfully");
+            return new ResponseMessage("Password Changed Successfully");
         } catch (Exception e) {
-            return Mono.error(new RuntimeException("Transaction silently rolled back"));
+            return new ResponseMessage("Transaction silently rolled back");
         }
 
     }
 
-    public String getCurrentToken(){
+    public String getCurrentToken() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if(authentication!= null && authentication.isAuthenticated()){
+        if (authentication != null && authentication.isAuthenticated()) {
             Object credentials = authentication.getCredentials();
 
-            if(credentials instanceof String){
+            if (credentials instanceof String) {
                 return (String) credentials;
             }
         }
@@ -235,7 +229,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("User not found with userName: " + userName)));
     }
 
-    private UserDetails getCurrentUserDetails(){
+    private UserDetails getCurrentUserDetails() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof UserDetails) {
             return (UserDetails) authentication.getPrincipal();
