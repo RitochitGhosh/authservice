@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -63,6 +64,9 @@ public class WebSecurityConfiguration {
                                 "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
+                        .requestMatchers(
+                                "/api/auth/change-password", "api/auth/hello", "/api/auth/logout"
+                        ).authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

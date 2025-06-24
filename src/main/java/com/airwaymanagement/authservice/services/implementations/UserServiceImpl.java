@@ -1,5 +1,6 @@
 package com.airwaymanagement.authservice.services.implementations;
 
+import com.airwaymanagement.authservice.model.dtos.requests.ChangePasswordRequest;
 import com.airwaymanagement.authservice.model.dtos.requests.Login;
 import com.airwaymanagement.authservice.model.dtos.requests.Signup;
 import com.airwaymanagement.authservice.model.dtos.requests.StaffSignup;
@@ -26,6 +27,8 @@ import reactor.core.publisher.Mono;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -161,6 +164,63 @@ public class UserServiceImpl implements UserService {
         }).onErrorResume(Mono::error);
     }
 
+    public Mono<Void> logout(){
+        return Mono.defer(()->{
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+            SecurityContextHolder.getContext().setAuthentication(null);
+
+            String token = getCurrentToken();
+
+            if(authentication!=null && authentication.isAuthenticated()){
+                String updatedToken = tokenProvider.reduceTokenExpiration(token);
+
+            }
+
+            SecurityContextHolder.clearContext();
+            return Mono.empty();
+        });
+    }
+
+    public Mono<String> changePassword(ChangePasswordRequest request) {
+
+        try {
+            UserDetails userDetails = getCurrentUserDetails();
+            String username = userDetails.getUsername();
+
+            User existingUser = findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User Not Found with username: " + username));
+
+            if (passwordEncoder.matches(request.getOldPassword(), userDetails.getPassword())) {
+                if (Objects.equals(request.getNewPassword(), request.getConfirmNewPassword())) {
+                    existingUser.setPassword(passwordEncoder.encode(request.getNewPassword()));
+                    userRepository.save(existingUser);
+                } else {
+                    return Mono.just("Password and Confirm Password is not same");
+                }
+            } else {
+                return Mono.error(new RuntimeException("Incorrect password"));
+            }
+            return Mono.just("Password Changed Successfully");
+        } catch (Exception e) {
+            return Mono.error(new RuntimeException("Transaction silently rolled back"));
+        }
+
+    }
+
+    public String getCurrentToken(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if(authentication!= null && authentication.isAuthenticated()){
+            Object credentials = authentication.getCredentials();
+
+            if(credentials instanceof String){
+                return (String) credentials;
+            }
+        }
+
+        return null;
+    }
 
     public boolean existsByUsername(String username) {
         return userRepository.existsByUserName(username);
@@ -168,6 +228,20 @@ public class UserServiceImpl implements UserService {
 
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+    public Optional<User> findByUsername(String userName) {
+        return Optional.ofNullable(userRepository.findByUserName(userName)
+                .orElseThrow(() -> new RuntimeException("User not found with userName: " + userName)));
+    }
+
+    private UserDetails getCurrentUserDetails(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof UserDetails) {
+            return (UserDetails) authentication.getPrincipal();
+        } else {
+            throw new RuntimeException("User not authenticated.");
+        }
     }
 
     private RoleName mapToRoleName(String roleName) {
