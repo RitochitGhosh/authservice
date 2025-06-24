@@ -70,7 +70,7 @@ public class TokenProvider {
         Claims claims = Jwts.parser()
                 .verifyWith(getJWTSecretKey(jwtSecret))
                 .build()
-                .parseUnsecuredClaims(token)
+                .parseSignedClaims(token)
                 .getPayload();
 
         // Build a new token with the updated expiration time

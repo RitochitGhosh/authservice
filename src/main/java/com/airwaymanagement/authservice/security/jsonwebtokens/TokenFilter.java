@@ -60,7 +60,7 @@ public class TokenFilter extends OncePerRequestFilter {
                 String username = tokenProvider.getUserNameFromToken(jwt);
                 UserDetails userDetails = userDetailService.loadUserByUsername(username);
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities()
+                        userDetails, jwt, userDetails.getAuthorities()
                 );
 
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -68,8 +68,8 @@ public class TokenFilter extends OncePerRequestFilter {
 
                 String refreshToken = tokenProvider.generateRefreshToken(authenticationToken);
 
-                // response.setHeader("Authorization", "Bearer " + jwt);
-                // response.setHeader("Refresh-Token", refreshToken);
+                response.setHeader("Authorization", "Bearer " + jwt);
+                response.setHeader("Refresh-Token", refreshToken);
 
             }
         } catch (Exception e) {
