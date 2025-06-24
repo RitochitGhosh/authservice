@@ -164,6 +164,24 @@ public class UserServiceImpl implements UserService {
         }).onErrorResume(Mono::error);
     }
 
+    public Mono<Void> logout(){
+        return Mono.defer(()->{
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+            SecurityContextHolder.getContext().setAuthentication(null);
+
+            String token = getCurrentToken();
+
+            if(authentication!=null && authentication.isAuthenticated()){
+                String updatedToken = tokenProvider.reduceTokenExpiration(token);
+
+            }
+
+            SecurityContextHolder.clearContext();
+            return Mono.empty();
+        });
+    }
+
     public Mono<String> changePassword(ChangePasswordRequest request) {
 
         try {
@@ -188,6 +206,20 @@ public class UserServiceImpl implements UserService {
             return Mono.error(new RuntimeException("Transaction silently rolled back"));
         }
 
+    }
+
+    public String getCurrentToken(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if(authentication!= null && authentication.isAuthenticated()){
+            Object credentials = authentication.getCredentials();
+
+            if(credentials instanceof String){
+                return (String) credentials;
+            }
+        }
+
+        return null;
     }
 
     public boolean existsByUsername(String username) {

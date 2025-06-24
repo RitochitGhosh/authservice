@@ -13,6 +13,7 @@ public interface UserService {
     Mono<User> registerStaff(StaffSignup staffSignup);
     Mono<JWTResponseMessage> login(Login login);
     Mono<String> changePassword(ChangePasswordRequest request);
+    Mono<Void> logout();
 
     // TODO : Include Other 4 Functions
 }
